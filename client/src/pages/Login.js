@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -20,7 +20,7 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', form);
+      const res = await axios.post('http://localhost:5001/api/auth/login', form);
       login(res.data.token, res.data.user);
       navigate('/dashboard');
     } catch (err) {
@@ -65,6 +65,9 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        <div style={styles.footer}>
+          Don't have an account? <Link to="/register" style={styles.link}>Register here</Link>
+        </div>
       </div>
     </div>
   );
@@ -114,6 +117,16 @@ const styles = {
     padding: '10px',
     borderRadius: '4px',
     marginBottom: '20px',
+  },
+  footer: {
+    textAlign: 'center',
+    marginTop: '20px',
+    fontSize: '14px',
+    color: '#666',
+  },
+  link: {
+    color: '#007bff',
+    textDecoration: 'none',
   },
 };
 

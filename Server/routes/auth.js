@@ -9,7 +9,8 @@ router.post('/register', async (req, res) => {
   try {
     const { employeeId, email, password, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ employeeId, email, password: hashedPassword, role });
+    const normalizedRole = role ? role.toLowerCase() : 'employee';
+    const user = new User({ employeeId, email, password: hashedPassword, role: normalizedRole });
     await user.save();
     res.json({ msg: 'User registered' });
   } catch (err) {

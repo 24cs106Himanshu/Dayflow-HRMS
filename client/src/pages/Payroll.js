@@ -10,11 +10,11 @@ const Payroll = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    employeeId: '',
-    month: '',
-    salary: '',
+    employee: '',
+    baseSalary: '',
+    bonus: '',
     deductions: '',
-    netPay: '',
+    netSalary: '',
   });
 
   useEffect(() => {
@@ -29,9 +29,8 @@ const Payroll = () => {
   const fetchPayroll = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/payroll', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const url = user?.role === 'admin' ? 'http://localhost:5001/api/payroll/all' : 'http://localhost:5001/api/payroll/my';
+      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       setPayrolls(res.data);
       setLoading(false);
     } catch (err) {
@@ -48,15 +47,15 @@ const Payroll = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/payroll', formData, {
+      await axios.post('http://localhost:5001/api/payroll/create', formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFormData({
-        employeeId: '',
-        month: '',
-        salary: '',
+        employee: '',
+        baseSalary: '',
+        bonus: '',
         deductions: '',
-        netPay: '',
+        netSalary: '',
       });
       setShowForm(false);
       fetchPayroll();
@@ -74,42 +73,42 @@ const Payroll = () => {
   return (
     <div style={styles.container}>
       <h1>Payroll Management</h1>
-      {user?.role === 'Admin' && (
+      {user?.role === 'admin' && (
         <button onClick={() => setShowForm(!showForm)} style={styles.button}>
           {showForm ? 'Cancel' : 'Add Payroll'}
         </button>
       )}
 
-      {showForm && user?.role === 'Admin' && (
+      {showForm && user?.role === 'admin' && (
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formGroup}>
-            <label>Employee ID:</label>
+            <label>Employee (id):</label>
             <input
               type="text"
-              name="employeeId"
-              value={formData.employeeId}
+              name="employee"
+              value={formData.employee}
               onChange={handleChange}
               required
               style={styles.input}
             />
           </div>
           <div style={styles.formGroup}>
-            <label>Month:</label>
-            <input
-              type="month"
-              name="month"
-              value={formData.month}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.formGroup}>
-            <label>Salary:</label>
+            <label>Base Salary:</label>
             <input
               type="number"
-              name="salary"
-              value={formData.salary}
+              name="baseSalary"
+              value={formData.baseSalary}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
+          <div style={styles.formGroup}>
+            <label>Bonus:</label>
+            <input
+              type="number"
+              name="bonus"
+              value={formData.bonus}
               onChange={handleChange}
               required
               style={styles.input}
@@ -127,11 +126,11 @@ const Payroll = () => {
             />
           </div>
           <div style={styles.formGroup}>
-            <label>Net Pay:</label>
+            <label>Net Salary:</label>
             <input
               type="number"
-              name="netPay"
-              value={formData.netPay}
+              name="netSalary"
+              value={formData.netSalary}
               onChange={handleChange}
               required
               style={styles.input}
@@ -144,19 +143,19 @@ const Payroll = () => {
       <table style={styles.table}>
         <thead>
           <tr>
-            <th>Month</th>
-            <th>Salary</th>
+            <th>Base</th>
+            <th>Bonus</th>
             <th>Deductions</th>
-            <th>Net Pay</th>
+            <th>Net Salary</th>
           </tr>
         </thead>
         <tbody>
           {payrolls.map((payroll) => (
             <tr key={payroll._id}>
-              <td>{payroll.month}</td>
-              <td>${payroll.salary?.toFixed(2)}</td>
-              <td>${payroll.deductions?.toFixed(2)}</td>
-              <td>${payroll.netPay?.toFixed(2)}</td>
+              <td>{payroll.baseSalary ?? '—'}</td>
+              <td>{payroll.bonus ?? '—'}</td>
+              <td>{payroll.deductions ?? '—'}</td>
+              <td>{payroll.netSalary ?? '—'}</td>
             </tr>
           ))}
         </tbody>

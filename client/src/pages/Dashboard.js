@@ -17,7 +17,7 @@ const Dashboard = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/employees/profile', {
+        const res = await axios.get('http://localhost:5001/api/employees/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProfile(res.data);
@@ -43,11 +43,13 @@ const Dashboard = () => {
       <div style={styles.sidebar}>
         <h2>Dayflow HRMS</h2>
         <nav>
-          <a href="/dashboard" style={styles.navLink}>Dashboard</a>
+          <a href="/dashboard/employee" style={styles.navLink}>Dashboard</a>
           <a href="/profile" style={styles.navLink}>Profile</a>
           <a href="/attendance" style={styles.navLink}>Attendance</a>
           <a href="/leave" style={styles.navLink}>Leave</a>
           <a href="/payroll" style={styles.navLink}>Payroll</a>
+          {user?.role === 'admin' && <a href="/dashboard/admin" style={styles.navLink}>Admin</a>}
+          <a href="/requirements" style={styles.navLink}>Requirements</a>
           <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
         </nav>
       </div>

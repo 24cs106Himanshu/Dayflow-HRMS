@@ -28,7 +28,7 @@ const Leave = () => {
   const fetchLeaves = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/leave', {
+      const res = await axios.get('http://localhost:5001/api/leave/my', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeaves(res.data);
@@ -47,7 +47,12 @@ const Leave = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/leave', formData, {
+      await axios.post('http://localhost:5001/api/leave/apply', {
+        type: formData.type,
+        from: formData.startDate,
+        to: formData.endDate,
+        reason: formData.remarks,
+      }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFormData({ type: 'Paid', startDate: '', endDate: '', remarks: '' });
@@ -63,7 +68,8 @@ const Leave = () => {
   const handleApprove = async (id, status) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/leave/${id}`, { status }, {
+      const endpoint = status === 'Approved' ? 'approve' : 'reject';
+      await axios.put(`http://localhost:5001/api/leave/${endpoint}/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchLeaves();
@@ -137,17 +143,17 @@ const Leave = () => {
             <th>Start Date</th>
             <th>End Date</th>
             <th>Status</th>
-            {user?.role === 'Admin' && <th>Actions</th>}
+            {user?.role === 'admin' && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
           {leaves.map((leave) => (
             <tr key={leave._id}>
               <td>{leave.type}</td>
-              <td>{new Date(leave.startDate).toLocaleDateString()}</td>
-              <td>{new Date(leave.endDate).toLocaleDateString()}</td>
+              <td>{leave.from ? new Date(leave.from).toLocaleDateString() : 'N/A'}</td>
+              <td>{leave.to ? new Date(leave.to).toLocaleDateString() : 'N/A'}</td>
               <td>{leave.status}</td>
-              {user?.role === 'Admin' && (
+              {user?.role === 'admin' && (
                 <td>
                   {leave.status === 'Pending' && (
                     <>

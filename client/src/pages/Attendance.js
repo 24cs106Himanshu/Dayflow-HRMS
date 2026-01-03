@@ -8,8 +8,6 @@ const Attendance = () => {
   const navigate = useNavigate();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ date: '', status: 'Present' });
 
   useEffect(() => {
     if (!user) {
@@ -23,9 +21,8 @@ const Attendance = () => {
   const fetchAttendance = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/attendance', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const url = user?.role === 'admin' ? 'http://localhost:5001/api/attendance/all' : 'http://localhost:5001/api/attendance/my';
+      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       setRecords(res.data);
       setLoading(false);
     } catch (err) {
@@ -34,23 +31,18 @@ const Attendance = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCheck = async (type) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/attendance', formData, {
+      const now = new Date();
+      const payload = type === 'checkin' ? { checkIn: now.toISOString() } : { checkOut: now.toISOString() };
+      await axios.post(`http://localhost:5001/api/attendance/${type}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setFormData({ date: '', status: 'Present' });
-      setShowForm(false);
       fetchAttendance();
-      alert('Attendance recorded successfully');
+      alert(`${type} recorded`);
     } catch (err) {
-      console.error('Error adding attendance:', err);
+      console.error('Error recording attendance:', err);
       alert('Failed to record attendance');
     }
   };
@@ -62,50 +54,27 @@ const Attendance = () => {
   return (
     <div style={styles.container}>
       <h1>Attendance</h1>
-      {user?.role === 'Admin' && (
-        <button onClick={() => setShowForm(!showForm)} style={styles.button}>
-          {showForm ? 'Cancel' : 'Add Attendance'}
-        </button>
-      )}
-      
-      {showForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label>Date:</label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.formGroup}>
-            <label>Status:</label>
-            <select name="status" value={formData.status} onChange={handleChange} style={styles.input}>
-              <option>Present</option>
-              <option>Absent</option>
-              <option>Half-Day</option>
-              <option>Leave</option>
-            </select>
-          </div>
-          <button type="submit" style={styles.submitBtn}>Submit</button>
-        </form>
-      )}
+      <div style={{ marginBottom: '20px' }}>
+        <button onClick={() => handleCheck('checkin')} style={styles.button}>Check In</button>
+        <button onClick={() => handleCheck('checkout')} style={{ ...styles.button, marginLeft: '10px' }}>Check Out</button>
+      </div>
 
       <table style={styles.table}>
         <thead>
           <tr>
             <th>Date</th>
             <th>Status</th>
+            <th>Check In</th>
+            <th>Check Out</th>
           </tr>
         </thead>
         <tbody>
           {records.map((record) => (
             <tr key={record._id}>
-              <td>{new Date(record.date).toLocaleDateString()}</td>
+              <td>{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}</td>
               <td>{record.status}</td>
+              <td>{record.checkIn ? new Date(record.checkIn).toLocaleTimeString() : '—'}</td>
+              <td>{record.checkOut ? new Date(record.checkOut).toLocaleTimeString() : '—'}</td>
             </tr>
           ))}
         </tbody>
